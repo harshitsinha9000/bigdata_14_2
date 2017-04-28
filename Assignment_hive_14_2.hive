@@ -1,0 +1,89 @@
+with date as string format
+
+create table temperature_dataset1 (date1 string,pin int,temp int) row format delimited fields terminated by ',' stored as textfile;
+
+
+************wrong no need to write again the column names , delimitaion way and stored as text file
+
+create table temperature_dataset (date1 date,pin int,temp int) row format delimited fields terminated by ',' stored as textfile AS select cast(to_date(from_unixtime(unix_timestamp(date1,'dd-MM-yyyy')))AS date),pin,temp from temperature_dataset1;
+
+
+************correct 
+
+create table temperature_dataset AS select cast(to_date(from_unixtime(unix_timestamp(date1,'dd-MM-yyyy')))AS date),pin,temp from temperature_dataset1;
+
+create table temperature_dataset2 AS select cast(to_date(from_unixtime(unix_timestamp(date1,'dd-MM-yyyy')))AS date),pin,temp from temperature_dataset1;
+
+
+load data local inpath 'dataset_Session14.txt' into table temperature_dataset;
+
+truncate table temperature_dataset;
+
+-----------------
+query 1: 
+
+select date,temp from temperature_dataset where pin >300000 AND pin<399999;
+
+Result:
+1990-03-10	15
+1991-01-10	22
+1990-02-12	9
+1991-03-10	16
+1990-01-10	23
+1991-02-12	10
+1993-03-10	16
+1994-01-10	23
+1991-02-12	10
+1991-03-10	16
+1990-01-10	23
+1991-02-12	10
+
+
+---------------
+query 2:
+
+select year(date),MAX(temp) from temperature_dataset group by year(date);
+
+Result:
+
+1990	23
+1991	22
+1993	16
+1994	23
+
+--------------
+query 3:
+
+select year(date),MAX(temp) from temperature_dataset group by year(date) having count(year(date))>2;
+
+Result:
+
+1990	23
+1991	22
+
+--------------
+query 4:
+
+create view  temperature_data_vw as select year(date),MAX(temp) from temperature_dataset group by year(date) having count(year(date))>2;
+
+
+
+-------------
+query 5
+
+insert overwrite local directory '/home/acadgild' select * from temperature_data_vw;
+
+Result 
+
+1990	23
+1991	22
+
+
+
+
+
+
+
+
+
+
